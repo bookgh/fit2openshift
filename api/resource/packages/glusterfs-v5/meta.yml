@@ -1,5 +1,5 @@
 name: glusterfs
-version: 6.0
+version: 4.1.8
 resource: storage
 playbooks:
   - name: install_glusterfs
@@ -71,4 +71,5 @@ templates:
                 excellent: 16
                 unit: "GB"
                 comment: "无"
+
 

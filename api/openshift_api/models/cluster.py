@@ -9,6 +9,8 @@ __all__ = ['OpenshiftCluster']
 
 class OpenshiftCluster(AbstractCluster):
     storages = models.ManyToManyField('openshift_storage.StorageCluster')
+    connect_config = models.TextField(null=True, blank=True)
+    auth = models.CharField(max_length=128, default=None, null=True, blank=True)
 
     def create_roles(self):
         super().create_roles()

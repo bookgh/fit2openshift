@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 INSTALLED_APPS = [
     'ansible_api.apps.AnsibleApiConfig',
+    'scheduler.apps.SchedulerConfig',
     'celery_api.apps.CeleryApiConfig',
     'openshift_base.apps.OpenshiftBaseConfig',
     'openshift_api.apps.OpenshiftApiConfig',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab'
 ]
 
 MIDDLEWARE = [

@@ -1,30 +1,89 @@
 name: okd-3.11
 version: 3.11
 resource: openshift
-install_playbooks:
-  - name: 1-config_ssh-install
+playbooks:
+  - name: config-ssh
     alias: playbooks/config_ssh.yml
-  - name: 2-distribute_ssh_key-install
+  - name: distribute-ssh-key
     alias: playbooks/distribute_ssh_key.yml
-  - name: 3-config_host_dns-install
+  - name: config_host_dns
     alias: playbooks/config_host_dns.yml
-  - name: 4-prepare_host-install
+  - name: prepare-host
     alias: playbooks/prepare_host.yml
-  - name: 5-uninstall_old-install
+  - name: uninstall-old
     alias: openshift-ansible/playbooks/adhoc/uninstall.yml
-  - name: 6-prequisites-install
+  - name: prequisites-install
     alias: openshift-ansible/playbooks/prerequisites.yml
-  - name: 7-config_docker_storage-install
+  - name: config_docker_storage
     alias: playbooks/config_docker_storage.yml
-  - name: 8-deploy-cluster-install
+  - name: install-openshift
     alias: openshift-ansible/playbooks/deploy_cluster.yml
-
-uninstall_playbooks:
-  - name: 1-glusterfs-uninstall
+  - name: uninstall-glusterfs
     alias: openshift-ansible/playbooks/openshift-glusterfs/uninstall.yml
-  - name: 2-okd-uninstall
+  - name: uninstall-openshift
     alias: openshift-ansible/playbooks/adhoc/uninstall.yml
+  - name: config-master
+    alias: openshift-ansible/playbooks/openshift-master/config.yml
+  - name: restart-openshift
+    alias: openshift-ansible/playbooks/openshift-master/restart.yml
+  - name: uninstall-glusterfs
+    alias: openshift-ansible/playbooks/openshift-glusterfs/uninstall.yml
+  - name: config-glusterfs
+    alias: openshift-ansible/playbooks/openshift-glusterfs/config.yml
 
+auth_templates:
+  - name: OpenID
+    config:
+      name: openid_auth
+      login: true
+      challenge: true
+      kind: OpenIDIdentityProvider
+      claims:
+        email:
+          - email
+        id:
+          - preferred_username
+        name:
+          - name
+        preferredUsername:
+          - preferred_username
+    options:
+      - name: client_id
+        default: my_client_id
+        type: string
+      - name: client_secret
+        default: true
+        type: string
+      - name: urls
+        default: {}
+        value: {}
+        type: parent
+        children:
+          - name: authorize
+            parent: urls
+            default: https://qa1.fit2cloud.com/auth/realms/cmp/protocol/openid-connect/auth
+            type: string
+          - name: token
+            type: https://qa1.fit2cloud.com/auth/realms/cmp/protocol/openid-connect/token
+            parent: string
+    vars:
+      - name: openshift_master_openid_ca
+        default: ca-content
+        type: text
+
+  - name: Htpasswd
+    config:
+      - name: htpasswd_auth
+        login: true
+        challenge: true
+        kind: HTPasswdPasswordIdentityProvider
+    options:
+    vars:
+      - name: openshift_master_htpasswd_users
+        default: {}
+        type: dict
+
+# template public roles
 roles:
   - name: etcd
     children:
@@ -75,6 +134,7 @@ roles:
       openshift_docker_options:  "--log-driver=journald --log-level=warn --ipv6=false --insecure-registry=0.0.0.0/0 --registry-mirror=https://docker.mirrors.ustc.edu.cn"
       ##auth
       openshift_master_identity_providers: [{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider'}]
+      openshift_master_htpasswd_users: {'admin': '$apr1$YCofw.II$y.EAnECLZJcb.ZJfn4nTP0'}
       ## Enable service catalog
       openshift_service_catalog_remove: true
       openshift_enable_service_catalog: true
@@ -85,8 +145,39 @@ roles:
       ##firewall
       os_firewall_use_firewalld: true
 templates:
-  - name: 单节点
-    comment: 用于测试环境
+  - name: all-in-one 模型
+    comment: 此部署模型至少需要主机 1 台，磁盘 2 块，仅用于测试环境，仅安装 Openshift 核心组件。
+    operations:
+      - name: install
+        comment: '安装'
+        playbooks:
+          - config-ssh
+          - distribute-ssh-key
+          - config_host_dns
+          - prepare-host
+          - uninstall-old
+          - prerequisites
+          - config-docker-storage
+          - install-openshift
+
+      - name: uninstall
+        comment: '卸载'
+        playbooks:
+          - uninstall-glusterfs
+          - uninstall-openshift
+
+      - name: config-auth
+        comment: '配置auth'
+        playbooks:
+          - config-master
+          - restart-openshift
+
+      - name: config-glusterfs
+        comment: '配置glusterfs'
+        playbooks:
+          - uninstall-glusterfs
+          - config-glusterfs
+
     portals:
       - name: Openshift Web Console
         redirect: https://$openshift_master_cluster_public_hostname
@@ -96,28 +187,27 @@ templates:
       openshift_cluster_monitoring_operator_install: false
       openshift_logging_install_logging: false
       openshift_metrics_install_metrics: false
-
     private_config:
       - name: openshift_master_cluster_public_hostname
         alias: 域名
         type: Input
-        default: masters-1.$cluster_name.f2o
-        required: true
+        default: masters-1.$cluster_name$domain_suffix
         help_text: 访问的fit2openshift的域名
+        display: true
 
       - name: openshift_master_default_subdomain
-        alias: 子域名后缀
+        alias: 应用域名后缀
         type: Input
-        default: apps.$cluster_name.f2o
-        required: true
+        default: apps.$cluster_name$domain_suffix
         help_text: 部署app后service的域名
+        display: true
 
       - name: openshift_master_cluster_hostname
         alias: 集群域名
         type: Input
-        default: masters-1.$cluster_name.f2o
-        required: true
+        default: masters-1.$cluster_name$domain_suffix
         help_text: 集群通信域名，解析至master节点
+        display: false
     roles:
       - name: masters
         vars:
@@ -172,305 +262,38 @@ templates:
         meta:
           hidden: true
 
-  - name: 一主多节点
-    comment: 用于测试开发环境
-    portals:
-      - name: Openshift Web Console
-        redirect: https://$openshift_master_cluster_public_hostname
-      - name: Manage Console
-        redirect: https://console.$openshift_master_default_subdomain
-    private_vars:
-      ##registry
-      openshift_hosted_registry_storage_kind: glusterfs
-      openshift_hosted_registry_storage_volume_size: 10Gi
-      openshift_hosted_registry_selector: 'node-role.kubernetes.io/infra=true'
-      ##glusterfs
-      openshift_storage_glusterfs_namespace: app-storage
-      openshift_storage_glusterfs_storageclass: true
-      openshift_storage_glusterfs_storageclass_default: false
-      openshift_storage_glusterfs_block_deploy: true
-      openshift_storage_glusterfs_block_host_vol_size: 100
-      openshift_storage_glusterfs_block_storageclass: true
-      openshift_storage_glusterfs_block_storageclass_default: false
-      openshift_storage_glusterfs_wipe: true
-      openshift_storage_glusterfs_heketi_wipe: true
-      ##logging
-      openshift_logging_es_pvc_dynamic:  true
-      openshift_logging_purge_logging: false
-      openshift_logging_use_ops: false
-      openshift_logging_es_cluster_size: 1
-      openshift_logging_es_number_of_replicas: 2
-      openshift_logging_es_nodeselector: {"node-role.kubernetes.io/infra": "true"}
-      openshift_logging_kibana_nodeselector: {"node-role.kubernetes.io/infra": "true"}
-      openshift_logging_curator_nodeselector: {"node-role.kubernetes.io/infra": "true"}
-      openshift_logging_elasticsearch_storage_type: pvc
-      openshift_logging_es_pvc_storage_class_name: "glusterfs-registry-block"
-      openshift_logging_es_pvc_size: 10Gi
-      openshift_logging_kibana_memory_limit: 512Mi
-      openshift_logging_fluentd_memory_limit: 512Mi
-      openshift_logging_es_memory_limit: 10Gi
-      ##metrics
-      openshift_metrics_cassandra_storage_type: pv
-      openshift_metrics_cassandra_pvc_storage_class_name: "glusterfs-storage-block"
-      openshift_metrics_storage_access_modes: ['ReadWriteOnce']
-      openshift_metrics_storage_volume_name: metrics
-      openshift_metrics_storage_volume_size: 10Gi
+  - name: 高可用模型
+    comment: 此部署模型为高可用部署模型，包括1个 load balance 节点，3个 (Master)主节点，3个 (Infra)架构节点和至少3个 (Compute)计算节点，可用于生产环境，可选装 clustet-monitoring、metrics、logging等组件。
+    operations:
+      - name: install
+        comment: '安装'
+        playbooks:
+          - config-ssh
+          - distribute-ssh-key
+          - config_host_dns
+          - prepare-host
+          - uninstall-old
+          - prerequisites
+          - config-docker-storage
+          - install-openshift
 
-      ##monitor
-      openshift_cluster_monitoring_operator_prometheus_storage_enabled: true
-      openshift_cluster_monitoring_operator_prometheus_storage_capacity: 50Gi
-      openshift_cluster_monitoring_operator_alertmanager_storage_capacity: 2Gi
-      openshift_cluster_monitoring_operator_node_selector: {"node-role.kubernetes.io/infra": "true"}
+      - name: uninstall
+        comment: '卸载'
+        playbooks:
+          - uninstall-glusterfs
+          - uninstall-openshift
 
-      registry_hostname: ''
+      - name: config-auth
+        comment: '配置auth'
+        playbooks:
+          - config-master
+          - restart-openshift
 
-    private_config:
-      - name: openshift_master_cluster_public_hostname
-        alias: 域名
-        type: Input
-        default: lb-1.$cluster_name.f2o
-        required: true
-        help_text: 访问的openshift web console的域名,请将此域名指向lb节点
-
-      - name: openshift_master_default_subdomain
-        alias: application子域名
-        type: Input
-        default: apps.$cluster_name.f2o
-        required: true
-        help_text: 部署application后service的域名,须将 *.apps.example.com 指向router所在节点
-
-      - name: openshift_master_cluster_hostname
-        alias: 集群域名
-        type: Input
-        default: masters-1.$cluster_name.f2o
-        required: true
-        help_text: 集群通信域名，解析至master节点
-
-      - name: openshift_cluster_monitoring_operator_install
-        alias: 集群监控
-        type: Checkbox
-        default: true
-        required: true
-        help_text: 部署集群监控插件
-
-      - name: openshift_metrics_install_metrics
-        alias: 集群指标
-        type: Checkbox
-        default: true
-        required: true
-        help_text: 部署集群指标采集插件
-
-      - name: openshift_logging_install_logging
-        alias: 日志分析
-        type: Checkbox
-        default: true
-        require: true
-        help_text: 部署日志分析插件
-    roles:
-      - name: lb
-        meta:
-          hidden: false
-          allow_os:
-            - name: CentOS
-              version:
-                - "7.4"
-                - "7.5"
-          requires:
-            nodes_require:
-              - '='
-              - 1
-            volumes_require:
-              - name: "system"
-                verbose: "系统卷:"
-                minimal: 50
-                excellent: 100
-                comment: "系统卷，用于运行操作系统"
-                unit: "GB"
-            device_require:
-              - name: "cpu_core"
-                verbose: "CPU 核心数"
-                minimal: 1
-                excellent: 2
-                comment: "无"
-                unit: "个"
-              - name: "memory_size"
-                verbose: "内存大小"
-                minimal: 2
-                excellent: 4
-                unit: "GB"
-                comment: "无"
-
-      - name: masters
-        vars:
-          openshift_node_group_name: node-config-master
-        meta:
-          hidden: false
-          node_vars:
-            - name: "docker_storage_device"
-              verbose: "Docker 存储卷"
-              comment: "请选择空白块存储设备,注意此操作将抹除所有数据！"
-              type: "Select"
-              require: true
-          allow_os:
-            - name: CentOS
-              version:
-                - "7.4"
-                - "7.5"
-          requires:
-            nodes_require:
-              - '='
-              - 1
-            volumes_require:
-              - name: "system"
-                verbose: "系统卷:"
-                minimal: 50
-                excellent: 100
-                comment: "系统卷，用于运行操作系统"
-                unit: "GB"
-              - name: "data"
-                verbose: "数据卷:"
-                minimal: 100
-                excellent: 500
-                comment: "数据卷,用于存储docker数据"
-                unit: "GB"
-            device_require:
-              - name: "cpu_core"
-                verbose: "CPU 核心数"
-                minimal: 4
-                excellent: 8
-                comment: "无"
-                unit: "个"
-              - name: "memory_size"
-                verbose: "内存大小"
-                minimal: 8
-                excellent: 16
-                unit: "GB"
-                comment: "无"
-
-      - name: compute
-        vars:
-          openshift_node_group_name: node-config-compute
-        meta:
-          hidden: false
-          node_vars:
-            - name: "docker_storage_device"
-              verbose: "Docker 存储卷"
-              comment: "请选择空白块存储设备,注意此操作将抹除所有数据！"
-              type: "Select"
-              require: true
-          allow_os:
-            - name: CentOS
-              version:
-                - "7.4"
-                - "7.5"
-          requires:
-            nodes_require:
-              - '>'
-              - 3
-            volumes_require:
-              - name: "system"
-                verbose: "系统卷"
-                minimal: 50
-                excellent: 100
-                comment: "系统卷，用于运行操作系统"
-                unit: "GB"
-              - name: "data"
-                verbose: "数据卷"
-                minimal: 50
-                excellent: 100
-                comment: "数据卷，用于存储docker数据"
-                unit: "GB"
-            device_require:
-              - name: "cpu_core"
-                verbose: "CPU 核心数"
-                minimal: 2
-                excellent: 4
-                comment: "无"
-                unit: "个"
-              - name: "memory_size"
-                verbose: "内存大小"
-                minimal: 8
-                excellent: 16
-                unit: "GB"
-                comment: "无"
-
-      - name: infra
-        vars:
-          openshift_node_group_name: node-config-infra
-        meta:
-          hidden: false
-          allow_os:
-            - name: CentOS
-              version:
-                - "7.4"
-                - "7.5"
-          node_vars:
-            - name: "docker_storage_device"
-              verbose: "Docker 存储卷"
-              comment: "请选择空白块存储设备,注意此操作将抹除所有数据！"
-              type: "Select"
-              require: true
-            - name: "glusterfs_devices"
-              verbose: "GlusterFS 存储卷"
-              comment: "请选择空白块存储设备,注意此操作将抹除所有数据！"
-              type: "Mutiselect"
-              require: true
-          requires:
-            nodes_require:
-              - '>'
-              - 3
-            volumes_require:
-              - name: "system"
-                verbose: "系统卷"
-                minimal: 50
-                excellent: 100
-                comment: "系统卷，用于运行操作系统"
-                unit: "GB"
-              - name: "data"
-                verbose: "数据卷"
-                minimal: 50
-                excellent: 100
-                comment: "数据卷，用于存储docker数据"
-                unit: "GB"
-              - name: "glusterfs"
-                verbose: "GlusterFS 卷"
-                minimal: 200
-                excellent: 500
-                comment: "GlusterFS 卷，集群主存储卷,用于Application数据存储，系统组件存储以及registry存储"
-                unit: "GB"
-            device_require:
-              - name: "cpu_core"
-                verbose: "CPU 核心数"
-                minimal: 2
-                excellent: 4
-                comment: "无"
-                unit: "个"
-              - name: "memory_size"
-                verbose: "内存大小"
-                minimal: 8
-                excellent: 16
-                unit: "GB"
-                comment: "无"
-      - name: glusterfs
-        children:
-          - infra
-        meta:
-          hidden: true
-      - name: glusterfs_registry
-        children:
-          - infra
-        meta:
-          hidden: true
-      - name: nodes
-        children:
-          - masters
-          - compute
-          - infra
-        meta:
-          hidden: true
-
-  - name: 多主多节点
-    comment: 用于生产环境
+      - name: config-glusterfs
+        comment: '配置glusterfs'
+        playbooks:
+          - uninstall-glusterfs
+          - config-glusterfs
     portals:
       - name: Openshift Web Console
         redirect: https://$openshift_master_cluster_public_hostname
@@ -505,14 +328,13 @@ templates:
       openshift_logging_es_pvc_size: 10Gi
       openshift_logging_kibana_memory_limit: 512Mi
       openshift_logging_fluentd_memory_limit: 512Mi
-      openshift_logging_es_memory_limit: 10Gi
+      openshift_logging_es_memory_limit: 1Gi
       ##metrics
       openshift_metrics_cassandra_storage_type: pv
       openshift_metrics_cassandra_pvc_storage_class_name: "glusterfs-storage"
       openshift_metrics_storage_access_modes: ['ReadWriteOnce']
       openshift_metrics_storage_volume_name: metrics
       openshift_metrics_storage_volume_size: 10Gi
-
       ##monitor
       openshift_cluster_monitoring_operator_prometheus_storage_enabled: true
       openshift_cluster_monitoring_operator_prometheus_storage_capacity: 50Gi
@@ -524,23 +346,26 @@ templates:
       - name: openshift_master_cluster_public_hostname
         alias: 域名
         type: Input
-        default: lb-1.$cluster_name.f2o
+        default: lb-1.$cluster_name$domain_suffix
         required: true
         help_text: 访问的openshift web console的域名,请将此域名指向lb节点
+        display: true
 
       - name: openshift_master_default_subdomain
         alias: application子域名
         type: Input
-        default: apps.$cluster_name.f2o
+        default: apps.$cluster_name$domain_suffix
         required: true
         help_text: 部署application后service的域名,须将 *.apps.example.com 指向router所在节点
+        display: true
 
       - name: openshift_master_cluster_hostname
         alias: 集群域名
         type: Input
-        default: masters-1.$cluster_name.f2o
+        default: lb-1.$cluster_name$domain_suffix
         required: true
         help_text: 集群通信域名，解析至master节点
+        display: false
 
       - name: openshift_cluster_monitoring_operator_install
         alias: 集群监控
@@ -548,6 +373,7 @@ templates:
         default: true
         required: true
         help_text: 部署集群监控插件
+        display: true
 
       - name: openshift_metrics_install_metrics
         alias: 集群指标
@@ -555,6 +381,7 @@ templates:
         default: true
         required: true
         help_text: 部署集群指标采集插件
+        display: true
 
       - name: openshift_logging_install_logging
         alias: 日志分析
@@ -562,6 +389,7 @@ templates:
         default: true
         require: true
         help_text: 部署日志分析插件
+        display: true
     roles:
       - name: lb
         meta:

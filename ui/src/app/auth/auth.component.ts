@@ -6,6 +6,7 @@ import {Package} from '../package/package';
 import {Auth} from './class/auth';
 import {PackageService} from '../package/package.service';
 import {AuthService} from './service/auth.service';
+import {OpenshiftCluster} from '../cluster/class/openshift-cluster';
 
 @Component({
   selector: 'app-auth',
@@ -33,7 +34,9 @@ export class AuthComponent implements OnInit {
     });
   }
 
-
+  onSubmit() {
+    this.authService.configAuth(this.auth, c);
+  }
 
 
 }

@@ -2,7 +2,7 @@ export class Auth {
   name: string;
   config: any;
   options: Option[];
-  vars: AuthVar;
+  vars: AuthVar[];
 }
 
 export class Option {
@@ -17,4 +17,5 @@ export class AuthVar {
   name: string;
   default: any;
   type: string;
+  value: any;
 }

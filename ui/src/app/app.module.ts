@@ -20,6 +20,8 @@ import {DeployModule} from './deploy/deploy.module';
 import {SettingModule} from './setting/setting.module';
 import {StorageModule} from './storage/storage.module';
 import {AuthModule} from './auth/auth.module';
+import {ClusterStorageComponent} from './cluster-storage/cluster-storage.component';
+import {ClusterStorageModule} from './cluster-storage/cluster-storage.module';
 
 @NgModule({
   declarations: [
@@ -43,7 +45,8 @@ import {AuthModule} from './auth/auth.module';
     HostModule,
     SettingModule,
     StorageModule,
-    AuthModule
+    AuthModule,
+    ClusterStorageModule
   ],
   providers: [{provide: HTTP_INTERCEPTORS, useClass: InterceptorService, multi: true}],
   bootstrap: [AppComponent]

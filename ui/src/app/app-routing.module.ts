@@ -19,6 +19,7 @@ import {StorageComponent} from './storage/storage.component';
 import {StorageDetailComponent} from './storage/component/storage-detail/storage-detail.component';
 import {StorageRoutingResolverService} from './storage/storage-routing-resolver.service';
 import {AuthComponent} from './auth/auth.component';
+import {ClusterStorageComponent} from './cluster-storage/cluster-storage.component';
 
 const routes: Routes = [
   {path: '', redirectTo: 'fit2openshift', pathMatch: 'full'},
@@ -47,6 +48,8 @@ const routes: Routes = [
           {path: 'deploy', component: DeployComponent},
           {path: 'auth', component: AuthComponent},
           {path: 'log', component: LogComponent},
+          {path: 'storage', component: ClusterStorageComponent},
+
         ]
       }, {
         path: 'storage/:name',

@@ -16,7 +16,6 @@ export class OverviewComponent implements OnInit {
 
   ngOnInit() {
     this.route.parent.data.subscribe(data => {
-      console.log(data);
       this.currentCluster = data['cluster'];
     });
   }

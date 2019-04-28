@@ -1,3 +1,5 @@
+import {Auth} from '../auth/class/auth';
+
 export class Package {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export class PackageMeta {
   version: string;
   resource: string;
   templates: Template[];
+  auth_templates: Auth[];
 }
 
 export class Config {

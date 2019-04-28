@@ -46,4 +46,8 @@ export class OpenshiftClusterService {
       catchError(error => throwError(error))
     );
   }
+
+  getOpenshiftClusterConfig(clusterName: string, configKey: string): Observable<ExtraConfig> {
+    return this.http.get<ExtraConfig>(`${baseOpenshiftClusterConfigUrl.replace('{openshift_name}', clusterName)}` + configKey + '/');
+  }
 }

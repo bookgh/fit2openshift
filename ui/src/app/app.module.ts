@@ -12,7 +12,6 @@ import {UserModule} from './user/user.module';
 import {ClusterModule} from './cluster/cluster.module';
 import {OverviewModule} from './overview/overview.module';
 import {NodeModule} from './node/node.module';
-import {ConfigModule} from './config/config.module';
 import {MonitorModule} from './monitor/monitor.module';
 import {LogModule} from './log/log.module';
 import {TipModule} from './tip/tip.module';
@@ -20,6 +19,7 @@ import {HostModule} from './host/host.module';
 import {DeployModule} from './deploy/deploy.module';
 import {SettingModule} from './setting/setting.module';
 import {StorageModule} from './storage/storage.module';
+import {AuthModule} from './auth/auth.module';
 
 @NgModule({
   declarations: [
@@ -37,13 +37,13 @@ import {StorageModule} from './storage/storage.module';
     DeployModule,
     OverviewModule,
     NodeModule,
-    ConfigModule,
     LogModule,
     MonitorModule,
     TipModule,
     HostModule,
     SettingModule,
-    StorageModule
+    StorageModule,
+    AuthModule
   ],
   providers: [{provide: HTTP_INTERCEPTORS, useClass: InterceptorService, multi: true}],
   bootstrap: [AppComponent]

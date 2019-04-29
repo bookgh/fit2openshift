@@ -34,8 +34,24 @@ export class AuthComponent implements OnInit {
     });
   }
 
+  setDefaultValue() {
+    this.auth.options.forEach(op => {
+      if (op.type !== 'parent') {
+        op.value = op.default;
+      } else {
+        op.value = op.default;
+        op.children.forEach(cop => {
+          op.value[cop.name] = cop.default;
+        });
+      }
+      this.auth.vars.forEach(v => {
+        v.value = v.default;
+      });
+    });
+  }
+
   onSubmit() {
-    this.authService.configAuth(this.auth, c);
+    // this.authService.configAuth( );
   }
 
 

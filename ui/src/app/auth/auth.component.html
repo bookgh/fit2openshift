@@ -3,7 +3,7 @@
     <form clrForm>
       <clr-select-container>
         <label>认证方式</label>
-        <select clrSelect [(ngModel)]="auth" name="auth">
+        <select clrSelect [(ngModel)]="auth" name="auth" (change)="setDefaultValue()">
           <option [value]="">请选择</option>
           <option *ngFor="let template of authTemplates" [ngValue]="template">{{template.name}}</option>
         </select>
@@ -13,7 +13,7 @@
           <div *ngIf="op.type !== 'parent'">
             <clr-input-container>
               <label>{{op.name}}</label>
-              <input type="text" clrInput [(ngModel)]="op.value" [name]="op.name"/>
+              <input [value]="op.default" type="text" clrInput [(ngModel)]="op.value" [name]="op.name"/>
             </clr-input-container>
           </div>
           <div *ngIf="op.type == 'parent'">

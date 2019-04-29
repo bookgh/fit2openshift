@@ -52,7 +52,7 @@ auth_templates:
         default: my_client_id
         type: string
       - name: client_secret
-        default: true
+        default: my_client_secret
         type: string
       - name: urls
         default: {}
@@ -61,16 +61,47 @@ auth_templates:
         children:
           - name: authorize
             parent: urls
-            default: https://qa1.fit2cloud.com/auth/realms/cmp/protocol/openid-connect/auth
+            default: https://myidp.example.com/oauth2/authorize
             type: string
           - name: token
-            type: https://qa1.fit2cloud.com/auth/realms/cmp/protocol/openid-connect/token
-            parent: string
+            type: string
+            default: https://myidp.example.com/oauth2/token
+            parent: urls
     vars:
       - name: openshift_master_openid_ca
         default: ca-content
         type: text
 
+  - name: LDAP/AD
+    config:
+      name: ldap_auth
+      challenge: 'true'
+      login: 'true'
+      kind: LDAPPasswordIdentityProvider
+      attributes:
+        id:
+          - dn
+        email:
+          - mail
+        name:
+          - cn
+        preferredUsername:
+          - uid
+      insecure: 'false'
+    options:
+      - name: url
+        default: ldap://ldap.example.com:389/ou=users,dc=example,dc=com?uid
+        type: string
+      - name: bindDN
+        default: ''
+        type: string
+      - name: bindPassword
+        default:
+        type: string
+    vars:
+      - name: openshift_master_ldap_ca
+        default: ca-content
+        type: text
   - name: Htpasswd
     config:
       - name: htpasswd_auth
@@ -80,8 +111,10 @@ auth_templates:
     options:
     vars:
       - name: openshift_master_htpasswd_users
-        default: {}
-        type: dict
+        default:
+          user1: "<pre-hashed password>"
+          user2: "<pre-hashed password>"
+        type: text
 
 # template public roles
 roles:

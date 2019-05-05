@@ -47,6 +47,10 @@ export class OpenshiftClusterService {
     );
   }
 
+  setOpenshiftClusterAuth(clusterName: string, auth: string): Observable<OpenshiftCluster> {
+    return this.http.patch<OpenshiftCluster>(`${baseOpenshiftClusterUrl}${clusterName}/`, {auth: auth});
+  }
+
   getOpenshiftClusterConfig(clusterName: string, configKey: string): Observable<ExtraConfig> {
     return this.http.get<ExtraConfig>(`${baseOpenshiftClusterConfigUrl.replace('{openshift_name}', clusterName)}` + configKey + '/');
   }

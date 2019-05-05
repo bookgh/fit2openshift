@@ -4,8 +4,9 @@ import {Auth} from '../class/auth';
 import {OpenshiftCluster} from '../../cluster/class/openshift-cluster';
 import {HttpClient} from '@angular/common/http';
 import {OpenshiftClusterService} from '../../cluster/service/openshift-cluster.service';
-import {ExtraConfig} from '../../cluster/class/cluster';
+import {Cluster, ExtraConfig} from '../../cluster/class/cluster';
 import {OperaterService} from '../../deploy/component/operater/operater.service';
+import {Router} from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,8 @@ import {OperaterService} from '../../deploy/component/operater/operater.service'
 export class AuthService {
 
 
-  constructor(private http: HttpClient, private clusterService: OpenshiftClusterService, private optService: OperaterService) {
+  constructor(private http: HttpClient, private clusterService: OpenshiftClusterService,
+              private optService: OperaterService, private router: Router) {
 
   }
 
@@ -21,23 +23,31 @@ export class AuthService {
     return pa.meta.auth_templates;
   }
 
-  getAuth(pa: Package, cluster: OpenshiftCluster) {
-    const name = cluster.auth;
-    let auth: Auth = new Auth();
-    pa.meta.auth_templates.forEach(template => {
-      if (template.name === name) {
-        auth = template;
-      }
+  fullAuth(auth: Auth, cluster: Cluster) {
+    this.clusterService.getOpenshiftClusterConfig(cluster.name, 'openshift_master_identity_providers').subscribe(data => {
+      const d = data.value[0];
+      auth.options.forEach(option => {
+        for (const key in d) {
+          if (key === option.name) {
+            option.value = d[key];
+          }
+        }
+      });
+      auth.vars.forEach(v => {
+        this.clusterService.getOpenshiftClusterConfig(cluster.name, v.name).subscribe(data => {
+          v.value = data.value;
+        });
+      });
     });
-    return auth;
   }
 
-  configAuth(auth: Auth, cluster: OpenshiftCluster) {
+  configAuth(auth: Auth, cluster: Cluster) {
     const config = auth.config;
     auth.options.forEach(option => {
       config[option.name] = option.value;
     });
-    const auth_list = [].push(config);
+    const auth_list = [];
+    auth_list.push(config);
     const authConfig: ExtraConfig = new ExtraConfig();
     authConfig.key = 'openshift_master_identity_providers';
     authConfig.value = auth_list;
@@ -54,9 +64,10 @@ export class AuthService {
       promises.push(this.clusterService.configOpenshiftCluster(cluster.name, c).toPromise());
     });
     Promise.all(promises).then(nil => {
-      this.optService.executeOperate(cluster.name, 'config-auth').subscribe(data => {
-        // 跳转term
-        console.log(data);
+      this.clusterService.setOpenshiftClusterAuth(cluster.name, auth.name).subscribe(d => {
+        this.optService.executeOperate(cluster.name, 'config-auth').subscribe(data => {
+          this.router.navigate(['fit2openshift', 'cluster', cluster.name, 'deploy']);
+        });
       });
     });
   }

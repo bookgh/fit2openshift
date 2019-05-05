@@ -6,7 +6,7 @@ import {Package} from '../package/package';
 import {Auth} from './class/auth';
 import {PackageService} from '../package/package.service';
 import {AuthService} from './service/auth.service';
-import {OpenshiftCluster} from '../cluster/class/openshift-cluster';
+import {OpenshiftClusterService} from '../cluster/service/openshift-cluster.service';
 
 @Component({
   selector: 'app-auth',
@@ -21,7 +21,8 @@ export class AuthComponent implements OnInit {
   authTemplates: Auth[];
 
   constructor(private route: ActivatedRoute, private authService: AuthService,
-              private clusterService: ClusterService, private packageService: PackageService) {
+              private clusterService: ClusterService, private packageService: PackageService,
+              private openshiftClusterService: OpenshiftClusterService) {
   }
 
   ngOnInit() {
@@ -30,6 +31,15 @@ export class AuthComponent implements OnInit {
       this.packageService.getPackage(this.currentCluster.package).subscribe(pkg => {
         this.pkg = pkg;
         this.authTemplates = this.authService.getAuthTemplatges(this.pkg);
+        this.openshiftClusterService.getOpenshiftCluster(this.currentCluster.name).subscribe(cls => {
+          this.pkg.meta.auth_templates.forEach(template => {
+            if (template.name === cls.auth) {
+              this.auth = template;
+            }
+          });
+          // 填充数据
+          this.authService.fullAuth(this.auth, this.currentCluster);
+        });
       });
     });
   }
@@ -51,7 +61,7 @@ export class AuthComponent implements OnInit {
   }
 
   onSubmit() {
-    // this.authService.configAuth( );
+    this.authService.configAuth(this.auth, this.currentCluster);
   }
 
 

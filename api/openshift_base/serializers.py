@@ -73,8 +73,6 @@ class NodeSerializer(AnsibleHostSerializer):
         slug_field='name', required=False
     )
 
-    meta = serializers.JSONField()
-
     def get_field_names(self, declared_fields, info):
         names = super().get_field_names(declared_fields, info)
         names.append('roles')
@@ -104,7 +102,6 @@ class RoleSerializer(GroupSerializer):
         many=True, queryset=Node.objects.all(),
         slug_field='name', required=False
     )
-    meta = serializers.JSONField()
 
     class Meta:
         model = Role

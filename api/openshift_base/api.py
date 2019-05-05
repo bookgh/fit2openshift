@@ -45,7 +45,7 @@ class RoleViewSet(ClusterResourceAPIMixin, viewsets.ModelViewSet):
 
 
 class NodeViewSet(ClusterResourceAPIMixin, viewsets.ModelViewSet):
-    queryset = Node.objects.filter(~Q(name='localhost'))
+    queryset = Node.objects.all()
     serializer_class = serializers.NodeSerializer
     permission_classes = (IsSuperUser,)
     lookup_field = 'name'

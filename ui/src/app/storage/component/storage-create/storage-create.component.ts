@@ -180,6 +180,7 @@ export class StorageCreateComponent implements OnInit, OnDestroy {
 
   onHostChange(node: Node) {
     if (node.host) {
+      console.log(node);
       node.volumes = [];
       this.hosts.forEach(host => {
         if (host.id === node.host) {

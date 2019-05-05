@@ -41,6 +41,11 @@ templates:
                 - "7.4"
                 - "7.5"
           node_vars:
+            - name: "glusterfs_devices"
+              verbose: "GlusterFS 存储卷"
+              comment: "请选择空白块存储设备,注意此操作将抹除所有数据！"
+              type: "Mutiselect"
+              require: true
           requires:
             nodes_require:
               - '>'
@@ -61,15 +66,13 @@ templates:
             device_require:
               - name: "cpu_core"
                 verbose: "CPU 核心数"
-                minimal: 4
+                minimal: 2
                 excellent: 8
                 comment: "无"
                 unit: "个"
               - name: "memory_size"
                 verbose: "内存大小"
-                minimal: 8
+                minimal: 4
                 excellent: 16
                 unit: "GB"
                 comment: "无"
-
-

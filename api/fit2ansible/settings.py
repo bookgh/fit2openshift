@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'openshift_base.apps.OpenshiftBaseConfig',
     'openshift_api.apps.OpenshiftApiConfig',
     'openshift_storage.apps.OpenshiftStorageConfig',
+    'openshift_client.apps.OpenshiftClientConfig',
     'users.apps.UsersConfig',
     'django_celery_beat',
     'rest_framework',

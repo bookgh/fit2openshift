@@ -26,8 +26,6 @@ playbooks:
     alias: openshift-ansible/playbooks/openshift-master/config.yml
   - name: restart-openshift
     alias: openshift-ansible/playbooks/openshift-master/restart.yml
-  - name: uninstall-glusterfs
-    alias: openshift-ansible/playbooks/openshift-glusterfs/uninstall.yml
   - name: config-glusterfs
     alias: openshift-ansible/playbooks/openshift-glusterfs/config.yml
 

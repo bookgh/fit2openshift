@@ -21,7 +21,7 @@ class ClusterConfigViewSet(ClusterResourceAPIMixin, viewsets.ModelViewSet):
     lookup_url_kwarg = 'key'
 
     def dispatch(self, request, *args, **kwargs):
-        cluster_name = kwargs.get('cluster_name')
+        cluster_name = kwargs.get('openshift_name')
         self.cluster = OpenshiftCluster.objects.get(name=cluster_name)
         resp = super().dispatch(request, *args, **kwargs)
         return resp

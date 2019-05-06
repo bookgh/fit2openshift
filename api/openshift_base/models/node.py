@@ -1,10 +1,19 @@
 from ansible_api.models import Host as Ansible_Host
 from django.db import models
+
 __all__ = ['Node']
 
 
 class Node(Ansible_Host):
+    NODE_STATUS_READY = "Ready"
+    NODE_STATUS_NOT_READY = "NotReady"
+    NODE_STATUS_CHOICES = (
+        (NODE_STATUS_READY, 'Ready'),
+        (NODE_STATUS_NOT_READY, 'NotReady')
+    )
     host = models.ForeignKey('Host', related_name='host', default=None, null=True, on_delete=models.CASCADE)
+    message = models.TextField(default=None, null=True)
+    status = models.CharField(choices=NODE_STATUS_CHOICES, max_length=64, default=NODE_STATUS_NOT_READY)
 
     @property
     def roles(self):

@@ -19,8 +19,7 @@ class Cluster(OpenshiftCluster):
         project_list = api_client.resources.get(api_version='v1', kind='Project').get()
         projects = []
         for project in project_list.items:
-            p = Project(name=project.metadata.name)
-            p.save()
+            p = Project.objects.update_or_create(name=project.metadata.name)
             projects.append(p)
         self.projects.set(projects)
 
@@ -30,8 +29,8 @@ class Cluster(OpenshiftCluster):
             services = []
             service_list = api_client.resources.get(api_version='v1', kind='Service').get(namespace=project.name)
             for service in service_list.items:
-                s = Service(name=service.metadata.name, type=service.spec.type, cluster_ip=service.spec.clusterIP)
-                s.save()
+                s = Service.objects.update_or_create(name=service.metadata.name, type=service.spec.type,
+                                                     cluster_ip=service.spec.clusterIP)
                 services.append(s)
             project.services.set(services)
             self.services.set(services)

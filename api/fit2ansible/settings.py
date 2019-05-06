@@ -285,3 +285,7 @@ LOGGING = {
         },
     },
 }
+
+CRONJOBS = (
+    ('*/1 * * * *', 'scheduler.tasks.test_sync'),
+)

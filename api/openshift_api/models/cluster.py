@@ -3,8 +3,6 @@ import os
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from kombu.utils import json
-
 from ansible_api.tasks import run_im_adhoc
 from fit2ansible.settings import ANSIBLE_PROJECTS_DIR
 from openshift_base.models.cluster import AbstractCluster

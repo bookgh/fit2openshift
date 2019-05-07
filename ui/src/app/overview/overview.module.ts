@@ -7,9 +7,10 @@ import {CoreModule} from '../core/core.module';
 import {DescribeComponent} from './describe/describe.component';
 import {TermComponent} from '../deploy/component/term/term.component';
 import {OperaterComponent} from '../deploy/component/operater/operater.component';
+import { OpenshiftInfoComponent } from './openshift-info/openshift-info.component';
 
 @NgModule({
-  declarations: [OverviewComponent, CharsComponent, DescribeComponent],
+  declarations: [OverviewComponent, CharsComponent, DescribeComponent, OpenshiftInfoComponent],
   imports: [
     CommonModule,
     CoreModule

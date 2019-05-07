@@ -1,6 +1,8 @@
 # 定时同步任务
 import logging
 
+from celery import task
+
 from openshift_api.models.cluster import OpenshiftCluster
 from openshift_client.models import Cluster
 

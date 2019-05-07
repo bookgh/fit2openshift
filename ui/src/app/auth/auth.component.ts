@@ -26,6 +26,14 @@ export class AuthComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loadData();
+  }
+
+  onCancel() {
+    this.loadData();
+  }
+
+  loadData() {
     this.route.parent.data.subscribe(data => {
       this.currentCluster = data['cluster'];
       this.packageService.getPackage(this.currentCluster.package).subscribe(pkg => {

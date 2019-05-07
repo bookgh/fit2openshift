@@ -5,8 +5,6 @@ from django.db import models
 from openshift_api.models.cluster import OpenshiftCluster
 from openshift_client.utils import generate_client
 
-# Create your models here.
-# pod service projects
 from ansible_api.models.mixins import AbstractProjectResourceModel, AbstractExecutionModel
 
 

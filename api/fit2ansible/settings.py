@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 import datetime
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from .conf import load_user_config
@@ -286,6 +287,6 @@ LOGGING = {
     },
 }
 
-CRONJOBS = (
-    ('*/1 * * * *', 'scheduler.tasks.test_sync'),
-)
+CRONJOBS = [
+    ('*/5 * * * *', 'scheduler.tasks.test_sync', '>>/home/test.log')
+]

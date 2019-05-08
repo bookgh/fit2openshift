@@ -59,9 +59,10 @@
       <clr-radio-wrapper *ngFor="let template of templates">
         <input required type="radio" clrRadio [(ngModel)]="cluster.template" [value]="template.name"
                name="template" (change)="templateOnChange()"/>
-        <label>{{template.name}}({{template.comment}})</label>
+        <label>{{template.name}}</label>
       </clr-radio-wrapper>
       <div *ngIf="template">
+        <div>{{template.comment}}</div>
         <div *ngFor="let role of template.roles">
           <div *ngIf="!role.meta.hidden">
             <h3>{{role.name}}</h3>
@@ -122,7 +123,6 @@
 
     </form>
   </clr-wizard-page>
-
   <clr-wizard-page [clrWizardPageNextDisabled]="canNodeNext()" (clrWizardPageNext)="fullNode()">
     <ng-template clrPageTitle>配置节点</ng-template>
     <form #nodeForm='ngForm' class="clr-form clr-form-compact">
@@ -181,6 +181,79 @@
 
   </clr-wizard-page>
 
+  <clr-wizard-page [clrWizardPageNextDisabled]="canNodeNext()" (clrWizardPageNext)="fullNode()">
+    <ng-template clrPageTitle>配置持久化存储</ng-template>
+    <form class="clr-form clr-form-compact">
+      <div class="clr-form-control clr-row">
+        <label for="storage" class="clr-control-label clr-col-xs-12 clr-col-md-2">存储类型</label>
+        <div class="clr-control-container clr-col-xs-12 clr-col-md-10">
+          <div class="clr-select-wrapper">
+            <select id="storage" [(ngModel)]="cluster.storage" name="storage" class="clr-select"
+                    (change)="storageTemplateOnChange()" required>
+              <option [value]=null>请选择存储提供商</option>
+              <option *ngFor="let tmpl of storageTemplates" [value]="tmpl.name">{{tmpl.name}}</option>
+            </select>
+            <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="storageTemplate">
+        <div *ngFor="let opt of storageTemplate.options">
+          <div class="clr-form-control clr-row">
+            <label [for]="opt.name" class="clr-control-label clr-col-xs-12 clr-col-md-2">{{opt.comment}}</label>
+            <div class="clr-control-container clr-col-xs-12 clr-col-md-10">
+              <div class="clr-input-wrapper">
+                <input [id]="opt.name" type="text" [placeholder]="opt.default" minlength="2" maxlength="128"
+                       class="clr-input" required>
+                <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngFor="let node of storage.nodes">
+          {{node.name}}
+          <clr-input-container>
+            <label>Ip:</label>
+            <input clrInput type="text" [(ngModel)]="node.ip" [ngModelOptions]="{standalone: true}">
+          </clr-input-container>
+
+          <clr-input-container>
+            <label>用户名:</label>
+            <input clrInput type="text" [(ngModel)]="node.username" [ngModelOptions]="{standalone: true}">
+          </clr-input-container>
+
+          <clr-password-container>
+            <label>密码:</label>
+            <input clrPassword type="password" [(ngModel)]="node.password" [ngModelOptions]="{standalone: true}">
+          </clr-password-container>
+        </div>
+      </div>
+    </form>
+  </clr-wizard-page>
+
+  <clr-wizard-page [clrWizardPageNextDisabled]="canConfigNext()">
+    <ng-template clrPageTitle>设置参数</ng-template>
+    <form #configForm='ngForm' clrForm>
+      <div *ngFor="let config of configs">
+        <div [ngSwitch]="config.type">
+          <clr-input-container *ngSwitchCase="'Input'">
+            <label>{{config.alias}}</label>
+            <label>
+              <input clrInput type="text" [value]="config.default" [(ngModel)]="config.value"
+                     [ngModelOptions]="{standalone: true}" [required]="config.require">
+            </label>
+          </clr-input-container>
+
+          <clr-checkbox [clrInline]="true" *ngSwitchCase="'Checkbox'" [(ngModel)]="config.value"
+                        [ngModelOptions]="{standalone: true}">
+            {{config.alias}}
+          </clr-checkbox>
+        </div>
+      </div>
+    </form>
+  </clr-wizard-page>
+
+
   <!--<clr-wizard-page [clrWizardPageNextDisabled]="!canCheckNext()">-->
   <clr-wizard-page>
     <ng-template clrPageTitle>配置检查</ng-template>
@@ -225,29 +298,6 @@
     </div>
   </clr-wizard-page>
 
-
-  <clr-wizard-page [clrWizardPageNextDisabled]="canConfigNext()">
-    <ng-template clrPageTitle>设置参数</ng-template>
-    <form #configForm='ngForm' clrForm>
-      <div *ngFor="let config of configs">
-        <div [ngSwitch]="config.type">
-          <clr-input-container *ngSwitchCase="'Input'">
-            <label>{{config.alias}}</label>
-            <label>
-              <input clrInput type="text" [value]="config.default" [(ngModel)]="config.value"
-                     [ngModelOptions]="{standalone: true}" [required]="config.require">
-            </label>
-          </clr-input-container>
-
-          <clr-checkbox [clrInline]="true" *ngSwitchCase="'Checkbox'" [(ngModel)]="config.value"
-                        [ngModelOptions]="{standalone: true}">
-            {{config.alias}}
-          </clr-checkbox>
-        </div>
-      </div>
-    </form>
-
-  </clr-wizard-page>
 
   <clr-wizard-page>
     <ng-template clrPageTitle>完成</ng-template>

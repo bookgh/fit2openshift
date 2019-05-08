@@ -2,7 +2,7 @@ import {Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChil
 import {Cluster, ExtraConfig} from '../../class/cluster';
 import {TipService} from '../../../tip/tip.service';
 import {ClrWizard} from '@clr/angular';
-import {Config, Package, Template} from '../../../package/package';
+import {Config, Package, StorageTemplate, Template, Storage} from '../../../package/package';
 import {PackageService} from '../../../package/package.service';
 import {TipLevels} from '../../../tip/tipLevels';
 import {OpenshiftClusterService} from '../../service/openshift-cluster.service';
@@ -30,8 +30,6 @@ export const CHECK_STATE_FAIL = 'fail';
 
 
 export class ClusterCreateComponent implements OnInit, OnDestroy {
-
-
   @ViewChild('wizard') wizard: ClrWizard;
   createClusterOpened: boolean;
   isSubmitGoing = false;
@@ -41,9 +39,12 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
   package: Package;
   packages: Package[] = [];
   templates: Template[] = [];
+  storageTemplates: StorageTemplate[] = [];
+  storageTemplate: StorageTemplate;
   nodes: Node[] = [];
   hosts: Host[] = [];
   groups: Group[] = [];
+  storage: Storage = new Storage();
   checkCpuState = CHECK_STATE_PENDING;
   checkMemoryState = CHECK_STATE_PENDING;
   checkOsState = CHECK_STATE_PENDING;
@@ -54,6 +55,7 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
   @ViewChild('basicFrom')
   basicForm: NgForm;
   isNameValid = true;
+  F;
   nameTooltipText = '';
   packageToolTipText = '';
   checkOnGoing = false;
@@ -108,6 +110,7 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
       if (pk.name === this.cluster.package) {
         this.package = pk;
         this.templates = this.package.meta.templates;
+        this.storageTemplates = this.package.meta.storage_templates;
       }
     });
     this.templates = this.package.meta.templates;
@@ -151,6 +154,34 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
       this.tipService.showTip('加载离线包错误!: \n' + error, TipLevels.ERROR);
     });
   }
+
+  storageTemplateOnChange() {
+    this.storage = new Storage();
+    this.storageTemplates.forEach(tmpl => {
+      if (tmpl.name === this.cluster.storage) {
+        this.storageTemplate = tmpl;
+        if (this.storageTemplate.roles.length > 0) {
+          // 创建 group
+          // 创建 node
+          this.generateStorageNode(tmpl);
+        }
+      }
+    });
+  }
+
+  generateStorageNode(tmpl: StorageTemplate) {
+    tmpl.roles.forEach(role => {
+      if (!role.meta.hidden) {
+        const num = role.meta.requires.nodes_require[1];
+        for (let i = 0; i < num; i++) {
+          const node: Node = new Node();
+          node.name = tmpl.name + '-' + i;
+          this.storage.nodes.push(node);
+        }
+      }
+    });
+  }
+
 
   templateOnChange() {
     this.templates.forEach(template => {

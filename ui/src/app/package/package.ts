@@ -1,4 +1,6 @@
 import {Auth} from '../auth/class/auth';
+import {Node} from '../node/node';
+
 
 export class Package {
   id: string;
@@ -13,6 +15,7 @@ export class PackageMeta {
   resource: string;
   templates: Template[];
   auth_templates: Auth[];
+  storage_templates: StorageTemplate[];
 }
 
 export class Config {
@@ -28,7 +31,10 @@ export class Config {
 
 export class Option {
   name: string;
-  alias: string;
+  default: any;
+  type: string;
+  value: any;
+  comment: string;
 }
 
 export class Role {
@@ -89,4 +95,21 @@ export class Template {
 export class Portal {
   name: string;
   redirect: string;
+}
+
+export class StorageTemplate {
+  name: string;
+  roles: Role[];
+  options: Option[];
+  vars: StorageVar[];
+}
+
+export class StorageVar {
+  name: string;
+  value: any;
+}
+
+export class Storage {
+  nodes: Node[] = [];
+  vars: StorageVar[] = [];
 }

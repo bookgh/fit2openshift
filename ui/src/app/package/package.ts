@@ -111,5 +111,5 @@ export class StorageVar {
 
 export class Storage {
   nodes: Node[] = [];
-  vars: StorageVar[] = [];
+  vars: {};
 }

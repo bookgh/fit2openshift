@@ -204,7 +204,7 @@
             <div class="clr-control-container clr-col-xs-12 clr-col-md-10">
               <div class="clr-input-wrapper">
                 <input [id]="opt.name" type="text" [placeholder]="opt.default" minlength="2" maxlength="128"
-                       class="clr-input" required>
+                       class="clr-input" [(ngModel)]="storage.vars[opt.name]" required>
                 <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
               </div>
             </div>

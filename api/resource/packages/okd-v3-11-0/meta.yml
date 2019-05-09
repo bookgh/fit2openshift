@@ -29,6 +29,92 @@ playbooks:
   - name: config-glusterfs
     alias: openshift-ansible/playbooks/openshift-glusterfs/config.yml
 
+
+storage_templates:
+#  - name: glusterfs
+#    operations:
+#      - name: install
+#        comment: '安装'
+#        playbooks:
+#          - config-glusterfs
+#      - name: uninstall
+#        comment: '卸载'
+#        playbooks:
+#          - uninstall-glusterfs
+#    roles:
+#      - name: glusterfs
+#        meta:
+#          hidden: false
+#          requires:
+#            nodes_require:
+#              - '>'
+#              - 3
+#      - name: glusterfs_registry
+#        meta:
+#          hidden: true
+#        children:
+#          - glusterfs
+#    options: []
+#    vars:
+#      - name: openshift_storage_glusterfs_namespace
+#        value: glusterfs-storage
+#      - name: openshift_storage_glusterfs_storageclass
+#        value: true
+#      - name: openshift_storage_glusterfs_storageclass_default
+#        value: true
+#      - name: openshift_storage_glusterfs_block_storageclass
+#        value: true
+#      - name: openshift_storage_glusterfs_block_storageclass_default
+#        value: false
+#      - name: openshift_storage_glusterfs_block_deploy
+#        value: true
+#      - name: openshift_storage_glusterfs_block_host_vol_size
+#        value: 20
+#      - name: openshift_storage_glusterfs_wipe
+#        value: true
+#      - name: openshift_storage_glusterfs_heketi_wipe
+#        value: true
+
+  - name: netapp
+    operations:
+      - name: install
+        comment: '安装'
+        playbooks:
+          - config-netapp
+      - name: uninstall
+        comment: '卸载'
+        playbooks:
+          - uninstall-netapp
+    roles: []
+    options:
+      - name: openshift_storage_netapp_driver_name
+        comment: driver_name
+        default: ontap-nas
+        type: string
+      - name: openshift_storage_netapp_managementLTF
+        comment: managementLTF
+        default: 10.0.0.1
+        type: string
+      - name: openshift_storage_netapp_dataLTF
+        comment: dataLTF
+        default: 10.0.0.2
+        type: string
+      - name: openshift_storage_netapp_username
+        comment: username
+        default: admin
+        type: string
+      - name: openshift_storage_netapp_password
+        comment: password
+        default: passwrod
+        type: password
+    vars:
+      - name: openshift_storage_netapp_namespace
+        value: netapp-storage
+      - name: openshift_storage_netapp_svm
+        value: trident_svm
+
+
+
 auth_templates:
   - name: OpenID
     config:
@@ -202,13 +288,6 @@ templates:
         playbooks:
           - config-master
           - restart-openshift
-
-      - name: config-glusterfs
-        comment: '配置glusterfs'
-        playbooks:
-          - uninstall-glusterfs
-          - config-glusterfs
-
     portals:
       - name: Openshift Web Console
         redirect: https://$openshift_master_cluster_public_hostname
@@ -223,7 +302,7 @@ templates:
         alias: 域名
         type: Input
         default: masters-1.$cluster_name$domain_suffix
-        help_text: 访问的fit2openshift的域名
+        help_text: 访问的fit 2openshift的域名
         display: true
 
       - name: openshift_master_default_subdomain
@@ -319,12 +398,6 @@ templates:
         playbooks:
           - config-master
           - restart-openshift
-
-      - name: config-glusterfs
-        comment: '配置glusterfs'
-        playbooks:
-          - uninstall-glusterfs
-          - config-glusterfs
     portals:
       - name: Openshift Web Console
         redirect: https://$openshift_master_cluster_public_hostname
@@ -335,16 +408,6 @@ templates:
       openshift_hosted_registry_storage_kind: glusterfs
       openshift_hosted_registry_storage_volume_size: 10Gi
       openshift_hosted_registry_selector: 'node-role.kubernetes.io/infra=true'
-      ##glusterfs
-      openshift_storage_glusterfs_namespace: app-storage
-      openshift_storage_glusterfs_storageclass: true
-      openshift_storage_glusterfs_storageclass_default: true
-      openshift_storage_glusterfs_block_deploy: true
-      openshift_storage_glusterfs_block_host_vol_size: 20
-      openshift_storage_glusterfs_block_storageclass: true
-      openshift_storage_glusterfs_block_storageclass_default: false
-      openshift_storage_glusterfs_wipe: true
-      openshift_storage_glusterfs_heketi_wipe: true
       ##logging
       openshift_logging_es_pvc_dynamic:  true
       openshift_logging_purge_logging: false
@@ -417,7 +480,7 @@ templates:
       - name: openshift_logging_install_logging
         alias: 日志分析
         type: Checkbox
-        default: true
+        default: trueexit
         require: true
         help_text: 部署日志分析插件
         display: true
@@ -565,11 +628,6 @@ templates:
               comment: "请选择空白块存储设备,注意此操作将抹除所有数据！"
               type: "Select"
               require: true
-            - name: "glusterfs_devices"
-              verbose: "GlusterFS 存储卷"
-              comment: "请选择空白块存储设备,注意此操作将抹除所有数据！"
-              type: "Mutiselect"
-              require: true
           requires:
             nodes_require:
               - '>'
@@ -586,12 +644,6 @@ templates:
                 minimal: 50
                 excellent: 100
                 comment: "数据卷，用于存储docker数据"
-                unit: "GB"
-              - name: "glusterfs"
-                verbose: "GlusterFS 卷"
-                minimal: 200
-                excellent: 500
-                comment: "GlusterFS 卷，集群主存储卷,用于Application数据存储，系统组件存储以及registry存储"
                 unit: "GB"
             device_require:
               - name: "cpu_core"

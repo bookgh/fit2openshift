@@ -92,7 +92,8 @@ class NodeSerializer(AnsibleHostSerializer):
         extra_kwargs = AnsibleHostSerializer.Meta.extra_kwargs
 
         fields = [
-            'id', 'name', 'ip', 'vars', 'roles', 'host', 'host_memory', 'host_cpu_core', 'host_os', 'host_os_version'
+            'id', 'name', 'ip', 'username', 'password', 'port', 'vars', 'roles', 'host', 'host_memory', 'host_cpu_core',
+            'host_os', 'host_os_version'
         ]
         read_only_fields = ['id', 'host_memory', 'host_cpu_core', 'host_os', 'host_os_version', 'ip']
 

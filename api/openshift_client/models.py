@@ -51,11 +51,12 @@ class Pod(models.Model):
     name = models.CharField(max_length=255)
 
 
-class Project(models.Model):
+class Project(AbstractProjectResourceModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=255)
     services = models.ManyToManyField('Service')
     pods = models.ManyToManyField('Pod')
+    project = models.ForeignKey('ansible_api.Project', on_delete=models.CASCADE)
 
 
 class Service(models.Model):

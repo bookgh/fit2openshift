@@ -1,8 +1,6 @@
 # 定时同步任务
 import logging
-
-from celery import task
-
+from celery import shared_task
 from openshift_api.models.cluster import OpenshiftCluster
 from openshift_client.models import Cluster
 
@@ -25,5 +23,6 @@ def sync_cluster_info():
         cluster.sync_services()
 
 
+@shared_task
 def test_sync():
-    logger.info('hello word!')
+    print('test')

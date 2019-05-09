@@ -287,6 +287,10 @@ LOGGING = {
     },
 }
 
-CRONJOBS = [
-    ('*/5 * * * *', 'scheduler.tasks.test_sync', '>>/home/test.log')
-]
+CELERYBEAT_SCHEDULE = {
+    'taskA_schedule': {
+        'task': 'scheduler.tasks.test_sync',
+        'schedule': 1,
+        'args': ()
+    },
+}

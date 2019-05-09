@@ -149,7 +149,9 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
 
   listPackages() {
     this.packageService.listPackage().subscribe(data => {
-      this.packages = data;
+      this.packages = data.filter(p => {
+        return p.meta.resource !== 'storage';
+      });
     }, error => {
       this.tipService.showTip('加载离线包错误!: \n' + error, TipLevels.ERROR);
     });
@@ -168,6 +170,7 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
       }
     });
   }
+
 
   generateStorageNode(tmpl: StorageTemplate) {
     tmpl.roles.forEach(role => {
@@ -317,16 +320,29 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
 
   configCluster() {
     const promises: Promise<{}>[] = [];
+    const extraConfigs: ExtraConfig[] = [];
     this.configs.forEach(c => {
       const extraConfig: ExtraConfig = new ExtraConfig();
       extraConfig.key = c.name;
       extraConfig.value = c.value;
-      promises.push(this.clusterService.configOpenshiftCluster(this.cluster.name, extraConfig).toPromise());
-      Promise.all(promises).then((data) => {
-        this.isSubmitGoing = false;
-        this.createClusterOpened = false;
-        this.create.emit(true);
-      });
+      extraConfigs.push(extraConfig);
+    });
+
+    for (const sv in this.storage.vars) {
+      if (sv) {
+        const extraConfig: ExtraConfig = new ExtraConfig();
+        extraConfig.key = sv;
+        extraConfig.value = this.storage.vars[sv];
+        extraConfigs.push(extraConfig);
+      }
+    }
+    extraConfigs.forEach(ex => {
+      promises.push(this.clusterService.configOpenshiftCluster(this.cluster.name, ex).toPromise());
+    });
+    Promise.all(promises).then((data) => {
+      this.isSubmitGoing = false;
+      this.createClusterOpened = false;
+      this.create.emit(true);
     });
   }
 

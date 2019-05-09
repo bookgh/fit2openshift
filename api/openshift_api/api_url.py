@@ -8,6 +8,7 @@ router = DefaultRouter()
 router.register('openshift', api.OpenshiftClusterViewSet, 'openshift')
 cluster_router = routers.NestedDefaultRouter(router, r'openshift', lookup='openshift')
 cluster_router.register(r'configs', api.ClusterConfigViewSet, 'cluster-config')
+cluster_router.register(r'project', api.OpenshiftProjectViewSet, 'cluster-project')
 
 urlpatterns = [
               ] + router.urls + cluster_router.urls

@@ -29,6 +29,7 @@ class OpenshiftCluster(AbstractCluster):
     projects = models.ManyToManyField('openshift_client.Project')
     services = models.ManyToManyField('openshift_client.Service')
     pods = models.ManyToManyField('openshift_client.Pod')
+    storage = models.CharField(max_length=128, null=True, default=None)
     status = models.CharField(max_length=128, choices=OPENSHIFT_STATUS_CHOICES, default=OPENSHIFT_STATUS_UNKNOWN)
 
     def get_connect_config(self):

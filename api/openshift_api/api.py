@@ -2,12 +2,23 @@ from rest_framework import viewsets
 from ansible_api.permissions import IsSuperUser
 from openshift_api import serializers
 from openshift_api.models.cluster import OpenshiftCluster
+from openshift_api.serializers import OpenshiftProjectSerializer
 from openshift_base.mixin import ClusterResourceAPIMixin
 from rest_framework.response import Response
 
+from openshift_client.models import Project
+
+
+class OpenshiftProjectViewSet(ClusterResourceAPIMixin, viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = OpenshiftProjectSerializer
+    http_method_names = ['get']
+    lookup_field = 'name'
+    lookup_url_kwarg = 'name'
+
 
 class OpenshiftClusterViewSet(viewsets.ModelViewSet):
-    queryset = OpenshiftCluster.objects.all().filter()
+    queryset = OpenshiftCluster.objects.all()
     serializer_class = serializers.OpenshiftClusterSerializer
     permission_classes = (IsSuperUser,)
     lookup_field = 'name'

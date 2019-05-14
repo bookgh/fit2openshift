@@ -3,6 +3,8 @@ import logging
 
 from ansible_api.models.mixins import AbstractProjectResourceModel, AbstractExecutionModel
 from django.db import models
+
+from openshift_api.models.cluster import OpenshiftCluster
 from openshift_base.models.cluster import AbstractCluster
 from openshift_base.signals import pre_deploy_execution_start, post_deploy_execution_start
 from common import models as common_models
@@ -21,7 +23,9 @@ class DeployExecution(AbstractProjectResourceModel, AbstractExecutionModel):
     def start(self):
         result = {"raw": {}, "summary": {}}
         pre_deploy_execution_start.send(self.__class__, execution=self)
-        cluster = AbstractCluster.objects.filter(id=self.project.id).first()
+        cluster = OpenshiftCluster.objects.filter(id=self.project.id).first()
+        cluster.status = OpenshiftCluster.status = OpenshiftCluster.OPENSHIFT_STATUS_INSTALLING
+        cluster.save()
         template = None
         for temp in cluster.package.meta.get('templates', []):
             if temp['name'] == cluster.template:
@@ -43,8 +47,12 @@ class DeployExecution(AbstractProjectResourceModel, AbstractExecutionModel):
                         current = current + 1
                         self.progress = current / total_palybook * 100
                         self.save()
+            cluster.status = OpenshiftCluster.OPENSHIFT_STATUS_RUNNING
+            cluster.save()
         except Exception as e:
             logger.error(e, exc_info=True)
+            cluster.status = OpenshiftCluster.OPENSHIFT_STATUS_ERROR
+            cluster.save()
             result['summary'] = {'error': 'Unexpect error occur: {}'.format(e)}
         post_deploy_execution_start.send(self.__class__, execution=self, result=result)
         return result

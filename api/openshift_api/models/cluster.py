@@ -15,17 +15,22 @@ __all__ = ['OpenshiftCluster']
 class OpenshiftCluster(AbstractCluster):
     OPENSHIFT_STATUS_UNKNOWN = 'UNKNOWN'
     OPENSHIFT_STATUS_RUNNING = 'RUNNING'
-    OPENSHIFT_STATUS_STOP = 'STOP'
     OPENSHIFT_STATUS_INSTALLING = 'INSTALLING'
+    OPENSHIFT_STATUS_ERROR = 'ERROR'
+    OPENSHIFT_STATUS_WARNING = 'WARNING'
+
+    OPENSHIFT_AUTH_DEFAULT = 'Htpasswd'
 
     OPENSHIFT_STATUS_CHOICES = (
         (OPENSHIFT_STATUS_RUNNING, 'running'),
-        (OPENSHIFT_STATUS_STOP, 'stop'),
         (OPENSHIFT_STATUS_INSTALLING, 'installing'),
-        (OPENSHIFT_STATUS_UNKNOWN, 'unknown')
+        (OPENSHIFT_STATUS_UNKNOWN, 'unknown'),
+        (OPENSHIFT_STATUS_ERROR, 'error'),
+        (OPENSHIFT_STATUS_WARNING, 'warning')
+
     )
     connect_config = models.TextField(null=True, blank=True)
-    auth = models.CharField(max_length=128, default=None, null=True, blank=True)
+    auth = models.CharField(max_length=128, default=OPENSHIFT_AUTH_DEFAULT, null=True, blank=True)
     projects = models.ManyToManyField('openshift_client.Project')
     services = models.ManyToManyField('openshift_client.Service')
     pods = models.ManyToManyField('openshift_client.Pod')

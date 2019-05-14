@@ -113,8 +113,6 @@ storage_templates:
       - name: openshift_storage_netapp_svm
         value: trident_svm
 
-
-
 auth_templates:
   - name: OpenID
     config:
@@ -134,10 +132,10 @@ auth_templates:
     options:
       - name: client_id
         default: my_client_id
-        type: string
+        type: text
       - name: client_secret
         default: my_client_secret
-        type: string
+        type: text
       - name: urls
         default: {}
         value: {}
@@ -146,15 +144,15 @@ auth_templates:
           - name: authorize
             parent: urls
             default: https://myidp.example.com/oauth2/authorize
-            type: string
+            type: text
           - name: token
-            type: string
+            type: text
             default: https://myidp.example.com/oauth2/token
             parent: urls
     vars:
       - name: openshift_master_openid_ca
         default: ca-content
-        type: text
+        type: textarea
 
   - name: LDAP/AD
     config:
@@ -175,30 +173,31 @@ auth_templates:
     options:
       - name: url
         default: ldap://ldap.example.com:389/ou=users,dc=example,dc=com?uid
-        type: string
+        type: text
       - name: bindDN
         default: ''
-        type: string
+        type: text
       - name: bindPassword
         default:
-        type: string
+        type: text
     vars:
       - name: openshift_master_ldap_ca
         default: ca-content
-        type: text
+        type: textarea
+
   - name: Htpasswd
     config:
       - name: htpasswd_auth
         login: true
         challenge: true
         kind: HTPasswdPasswordIdentityProvider
-    options:
-    vars:
-      - name: openshift_master_htpasswd_users
-        default:
-          user1: "<pre-hashed password>"
-          user2: "<pre-hashed password>"
-        type: text
+    options: []
+    vars: []
+#      - name: openshift_master_htpasswd_users
+#        default:
+#          user1: "<pre-hashed password>"
+#          user2: "<pre-hashed password>"
+#        type: textarea
 
 # template public roles
 roles:

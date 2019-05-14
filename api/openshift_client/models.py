@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from openshift_api.models.cluster import OpenshiftCluster
+from openshift_base.models.node import Node
 from openshift_client.utils import generate_client
 
 from ansible_api.models.mixins import AbstractProjectResourceModel, AbstractExecutionModel
@@ -20,6 +21,27 @@ class Cluster(OpenshiftCluster):
             p = Project.objects.update_or_create(name=project.metadata.name)
             projects.append(p)
         self.projects.set(projects)
+
+    def get_node_heartbeat(self):
+        api_client = generate_client(self.connect_config)
+        node_list = api_client.resources.get(api_version='v1', kind='Node').get()
+        self.change_to()
+        nodes = Node.objects.all()
+        for node in nodes:
+            remote_node = None
+            for _node in node_list.items:
+                if _node.metadata.name == node.name:
+                    remote_node = _node
+            # 判断是否存在告警
+            if remote_node:
+                node_ready_key = 'KubeletReady'
+                for condition in remote_node.status.conditions:
+                    if condition.reason == node_ready_key:
+                        if condition.status:
+                            node.status = Node.NODE_STATUS_READY
+                        else:
+                            node.status = Node.NODE_STATUS_NOT_READY
+            node.save()
 
     def sync_services(self):
         api_client = generate_client(self.connect_config)

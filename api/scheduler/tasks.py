@@ -30,8 +30,8 @@ def sync_connect_config():
 
 @shared_task
 def sync_cluster_info(cluster):
-    get_cluster_connection_config()
-    get_node_heart_beat()
+    get_cluster_connection_config(cluster)
+    get_node_heart_beat(cluster)
 
 
 def get_cluster_connection_config(cluster):

@@ -190,7 +190,7 @@
           <div class="clr-select-wrapper">
             <select id="storage" [(ngModel)]="cluster.storage" name="storage" class="clr-select"
                     (change)="storageTemplateOnChange()" required>
-              <option [value]=null>请选择存储提供商</option>
+              <option [value]=null>无</option>
               <option *ngFor="let tmpl of storageTemplates" [value]="tmpl.name">{{tmpl.name}}</option>
             </select>
             <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>

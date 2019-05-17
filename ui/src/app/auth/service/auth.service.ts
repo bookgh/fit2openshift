@@ -25,6 +25,7 @@ export class AuthService {
 
   fullAuth(auth: Auth, cluster: Cluster) {
     this.clusterService.getOpenshiftClusterConfig(cluster.name, 'openshift_master_identity_providers').subscribe(data => {
+      console.log(auth);
       const d = data.value[0];
       auth.options.forEach(option => {
         for (const key in d) {
